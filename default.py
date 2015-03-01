@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 #/*
-# *      Copyright (C) 2013 Pepa
+# *      Copyright (C) 2013 Libor Zoubek + jondas
 # *
 # *
 # *  This Program is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html
 # *
 # */
+
 import os
 sys.path.append( os.path.join ( os.path.dirname(__file__),'resources','lib') )
 

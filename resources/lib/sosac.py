@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 #/*
-# *      Copyright (C) 2013 Pepa správný
+# *      Copyright (C) 2013 Libor Zoubek + jondas
 # *
 # *
 # *  This Program is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 
 import re,os,urllib,urllib2,cookielib
 import util
+import xbmc
 
 from urlparse import urljoin
 from provider import ContentProvider,cached,ResolveException
@@ -32,6 +33,7 @@ TV_SHOWS_BASE_URL = "http://tv.sosac.ph"
 MOVIES_A_TO_Z_TYPE = "movies-a-z"
 TV_SHOWS_A_TO_Z_TYPE = "tv-shows-a-z"
 TV_SHOW_FLAG = "#tvshow#"
+ISO_639_1_CZECH = "cs"
 class SosacContentProvider(ContentProvider):
 
     def __init__(self,username=None,password=None,filter=None,reverse_eps=False):
@@ -52,9 +54,13 @@ class SosacContentProvider(ContentProvider):
 
     def a_to_z(self, url_type):
         result = []
+        user_language = xbmc.getLanguage(xbmc.ISO_639_1)
         for letter in ['0-9','a','b','c','d','e','f','g','e','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']:
             item = self.dir_item(title=letter.upper())
-            item['url'] = urljoin(urljoin(self.base_url, url_type), letter)
+            if user_language == ISO_639_1_CZECH:
+                item['url'] = self.base_url + "/" + ISO_639_1_CZECH +  "/" + url_type + "/" + letter
+            else:
+                item['url'] = self.base_url + "/" + url_type + "/" + letter
             result.append(item)
         return result
 
@@ -77,7 +83,7 @@ class SosacContentProvider(ContentProvider):
         return TV_SHOW_FLAG in url
 
     def remove_flags(self, url):
-        return url.replace(TV_SHOW_FLAG, "", count=1)
+        return url.replace(TV_SHOW_FLAG, "", 1)
 
     def list(self,url):
         print("Examining url", url)
@@ -122,20 +128,19 @@ class SosacContentProvider(ContentProvider):
             result.reverse()
         return result
 
-    @classmethod
-    def add_video_flag(cls, items):
+
+    def add_video_flag(self, items):
         flagged_items = []
         for item in items:
-            flagged_item = cls.video_item()
+            flagged_item = self.video_item()
             flagged_item.update(item)
             flagged_items.append(flagged_item)
         return flagged_items
 
-    @classmethod
-    def add_directory_flag(cls, items):
+    def add_directory_flag(self, items):
         flagged_items = []
         for item in items:
-            flagged_item = cls.dir_item()
+            flagged_item = self.dir_item()
             flagged_item.update(item)
             flagged_items.append(flagged_item)
         return flagged_items
@@ -164,13 +169,16 @@ class SosacContentProvider(ContentProvider):
         return result
 
     def add_flag_to_url(self, item, flag):
-        item['url'] = flag + item['item']
+        item['url'] = flag + item['url']
         return item
 
     def add_url_flag_to_items(self, items, flag):
         for item in items:
             self.add_flag_to_url(item, flag)
         return items
+
+    def _url(self, url):
+        return self.base_url + "/" + url.lstrip('./')
 
     def list_tv_shows_by_letter(self, url):
         print("Getting shows by letter", url)
